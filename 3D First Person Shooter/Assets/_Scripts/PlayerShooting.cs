@@ -1,4 +1,11 @@
-﻿using UnityEngine;
+﻿/* Source File Name: PlayerShooting.cs
+ * Author's Name: Zhaoning Cai
+ * Last Modified on: Nov 18, 2015
+ * Program Description: First Person Shooter Game. Player destroys a berrel to win
+ * the level. The player can earn points by collecting coins and killing aliens.
+ * Revision History: Final Version
+ */
+using UnityEngine;
 using System.Collections;
 using UnityStandardAssets.CrossPlatformInput;
 using UnityStandardAssets.Utility;
@@ -11,12 +18,16 @@ public class PlayerShooting : MonoBehaviour {
     public Animator gunAnimator;
     public AudioSource bulletFireSound;
     public AudioSource bulletImpactSound;
+    public GameObject explosion;
+    public GameObject enemyExplosion;
+    public GameController gameController;
 
     // PRIVATE INSTANCE VARIABLES +++++++++++++++++++++++++++++++++++++++++++++++
     private GameObject[] _impacts;
     private int currentImpact = 0;
     private int maxImpacts = 5;
     private Transform _transform;
+    private GameObject[] enemies;
 
     private bool _shooting = false;
 
@@ -63,6 +74,25 @@ public class PlayerShooting : MonoBehaviour {
             RaycastHit hit;
             if (Physics.Raycast(this._transform.position, this._transform.forward, out hit, 50f))
             {
+                // Destroying barrel will grant player the victory
+                if (hit.transform.CompareTag("Barrels"))
+                {
+                    Destroy(hit.transform.gameObject);
+                    Instantiate(this.explosion, hit.point, Quaternion.identity);
+                    enemies = GameObject.FindGameObjectsWithTag("Enemy");
+                    for (int i = 0; i < enemies.Length; i++)
+                    {
+                        Destroy(enemies[i].gameObject);
+                    }
+                    gameController.gameOverLabel.text = "You've WON!";
+                }
+                // Destroy enemies to earn 300 points
+                if (hit.transform.CompareTag("Enemy"))
+                {
+                    Destroy(hit.transform.gameObject);
+                    Instantiate(this.explosion, hit.point, Quaternion.identity);
+                    gameController.AddScore(300);
+                }
                 // Move impact particle system to location of ray hit
                 this._impacts[this.currentImpact].transform.position = hit.point;
                 // Play the particle effect (impact)
